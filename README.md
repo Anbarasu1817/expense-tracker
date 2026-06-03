@@ -1,4 +1,30 @@
 # 💰 Expense Tracker
+# 💰 Expense Tracker App
+
+A full-stack Expense Tracker built using **FastAPI + PostgreSQL + Streamlit**
+
+---
+
+## 🚀 Features
+
+- 👤 User Registration & Login  
+- 💸 Add / Edit / Delete Expenses  
+- 💰 Income Tracking  
+- 📊 Dashboard with Charts  
+- 📅 Monthly Reports  
+- 📥 PDF Download  
+- 🔍 Search & Filter Expenses  
+
+---
+
+## 🛠️ Tech Stack
+
+- Frontend: Streamlit  
+- Backend: FastAPI  
+- Database: PostgreSQL  
+- Visualization: Plotly  
+
+---
 
 ## 🔗 Live Demo
 
