@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from datetime import date
 
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
+
 st.title("💸 Add Expense")
 
 # Quick Category Buttons
@@ -35,30 +37,21 @@ with st.form("expense_form"):
         step=1.0
     )
 
+    categories = [
+        "Food",
+        "Transport",
+        "Bills",
+        "Health",
+        "Entertainment",
+        "Shopping",
+        "Other"
+    ]
+
     category = st.selectbox(
         "Category",
-        [
-            "Food",
-            "Transport",
-            "Bills",
-            "Health",
-            "Entertainment",
-            "Shopping",
-            "Other"
-        ],
-        index=[
-            "Food",
-            "Transport",
-            "Bills",
-            "Health",
-            "Entertainment",
-            "Shopping",
-            "Other"
-        ].index(
-            st.session_state.get(
-                "category",
-                "Food"
-            )
+        categories,
+        index=categories.index(
+            st.session_state.get("category", "Food")
         )
     )
 
@@ -73,39 +66,44 @@ with st.form("expense_form"):
 
 if submitted:
 
-    data = {
-        "title": title,
-        "amount": amount,
-        "category": category,
-        "date": str(expense_date)
-    }
+    if not title.strip():
+        st.warning("Please enter expense title")
+    else:
 
-    try:
+        data = {
+            "title": title,
+            "amount": amount,
+            "category": category,
+            "date": str(expense_date)
+        }
 
-        response = requests.post(
-            "http://127.0.0.1:8000/expenses",
-            json=data
-        )
+        try:
 
-        if response.status_code == 200:
-
-            st.success(
-                "Expense Added Successfully ✅"
+            response = requests.post(
+                f"{BACKEND_URL}/expenses",
+                json=data,
+                timeout=20
             )
 
-            st.balloons()
+            if response.status_code == 200:
 
-        else:
+                st.success(
+                    "Expense Added Successfully ✅"
+                )
+
+                st.balloons()
+
+            else:
+
+                st.error(
+                    f"Server Error: {response.text}"
+                )
+
+        except Exception as e:
 
             st.error(
-                f"Error: {response.text}"
+                f"Backend Error: {e}"
             )
-
-    except Exception as e:
-
-        st.error(
-            f"Backend Error: {e}"
-        )
 
 # Expense Tips
 st.divider()
@@ -114,7 +112,9 @@ st.info(
     "💡 Tip: Record expenses daily to track spending accurately."
 )
 
-# Clear Selection Button
+# Reset Button
 if st.button("🔄 Reset Form"):
+
     st.session_state["category"] = "Food"
+
     st.rerun()
