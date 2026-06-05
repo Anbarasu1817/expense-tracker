@@ -26,7 +26,7 @@ if st.button("Add Income"):
     else:
 
         response = requests.post(
-            "http://127.0.0.1:8000/income",
+            "https://expense-tracker-1-3jd3.onrender.com/income",
             json={
                 "amount": amount,
                 "source": source,

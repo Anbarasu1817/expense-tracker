@@ -67,11 +67,11 @@ with st.spinner("Loading Dashboard..."):
 try:
 
     expenses = requests.get(
-        "http://127.0.0.1:8000/expenses"
+        "https://expense-tracker-1-3jd3.onrender.com"
     ).json()
 
     income = requests.get(
-        "http://127.0.0.1:8000/income"
+        "https://expense-tracker-1-3jd3.onrender.com"
     ).json()
 
     total_income = sum(

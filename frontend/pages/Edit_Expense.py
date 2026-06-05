@@ -7,7 +7,7 @@ st.title("Edit Expense")
 try:
 
     response = requests.get(
-        "http://127.0.0.1:8000/expenses"
+        "https://expense-tracker-1-3jd3.onrender.com/expenses"
     )
 
     expenses = response.json()
@@ -74,7 +74,7 @@ try:
         }
 
         response = requests.put(
-            f"http://127.0.0.1:8000/expenses/{expense['id']}",
+            f"https://expense-tracker-1-3jd3.onrender.com/expenses/{expense['id']}",
             json=data
         )
 
