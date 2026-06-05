@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import pandas as pd
 
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
+
 st.title("📜 Expense History")
 
 # Refresh Button
@@ -11,14 +13,18 @@ if st.button("🔄 Refresh"):
 try:
 
     response = requests.get(
-        "http://127.0.0.1:8000/expenses"
+        f"{BACKEND_URL}/expenses",
+        timeout=30
     )
+
+    if not response.ok:
+        st.error("Failed to load expenses")
+        st.stop()
 
     expenses = response.json()
 
     if expenses:
 
-        # Summary Cards
         total_expense = sum(
             e["amount"]
             for e in expenses
@@ -33,20 +39,16 @@ try:
 
         col2.metric(
             "💰 Total Amount",
-            f"₹{total_expense:,.0f}"
+            f"₹{total_expense:,.2f}"
         )
 
         st.divider()
 
-        # Search Box
         search = st.text_input(
             "🔍 Search Expense"
         )
 
-        # Category Filter
-        categories = [
-            "All"
-        ] + sorted(
+        categories = ["All"] + sorted(
             list(
                 set(
                     e["category"]
@@ -60,7 +62,6 @@ try:
             categories
         )
 
-        # Filtering
         filtered = expenses
 
         if search:
@@ -86,77 +87,80 @@ try:
             f"Showing {len(filtered)} Expenses"
         )
 
-        # Expense List
         for expense in filtered:
 
             with st.expander(
-                f"💸 ₹{expense['amount']} - "
-                f"{expense['category']}"
+                f"💸 ₹{expense['amount']} - {expense['category']}"
             ):
 
                 st.write(
-                    f"**Title:** "
-                    f"{expense.get('title','N/A')}"
+                    f"**Title:** {expense.get('title', 'N/A')}"
                 )
 
                 st.write(
-                    f"**Category:** "
-                    f"{expense['category']}"
+                    f"**Category:** {expense['category']}"
                 )
 
                 st.write(
-                    f"**Amount:** "
-                    f"₹{expense['amount']}"
+                    f"**Amount:** ₹{expense['amount']}"
                 )
 
                 st.write(
-                    f"**Date:** "
-                    f"{expense.get('date','N/A')}"
+                    f"**Date:** {expense.get('date', 'N/A')}"
                 )
 
-                col1, col2 = st.columns(2)
+                if st.button(
+                    "🗑 Delete",
+                    key=f"delete_{expense['id']}"
+                ):
 
-                with col1:
+                    delete_response = requests.delete(
+                        f"{BACKEND_URL}/expenses/{expense['id']}",
+                        timeout=30
+                    )
 
-                    if st.button(
-                        "🗑 Delete",
-                        key=f"delete_{expense['id']}"
-                    ):
-
-                        requests.delete(
-                            f"http://127.0.0.1:8000/expenses/{expense['id']}"
-                        )
+                    if delete_response.ok:
 
                         st.success(
-                            "Expense Deleted"
+                            "Expense Deleted Successfully ✅"
                         )
 
                         st.rerun()
 
-                with col2:
+                    else:
 
-                    st.button(
-                        "✏ Edit",
-                        key=f"edit_{expense['id']}"
-                    )
+                        st.error(
+                            "Failed to delete expense"
+                        )
 
-        # CSV Download
         st.divider()
 
         df = pd.DataFrame(filtered)
 
         st.download_button(
-            "📥 Download CSV",
-            df.to_csv(index=False),
-            "expenses.csv",
-            "text/csv"
+            label="📥 Download CSV",
+            data=df.to_csv(index=False),
+            file_name="expenses.csv",
+            mime="text/csv"
         )
 
     else:
 
         st.info(
-            "📭 No expenses found"
+            "📭 No Expenses Found"
         )
+
+except requests.exceptions.ConnectionError:
+
+    st.error(
+        "Cannot connect to backend server."
+    )
+
+except requests.exceptions.Timeout:
+
+    st.error(
+        "Request Timeout."
+    )
 
 except Exception as e:
 

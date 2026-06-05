@@ -1,61 +1,127 @@
 import streamlit as st
 import requests
+import time
 
-st.title("Register")
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
 
-username = st.text_input("Username")
-password = st.text_input(
-    "Password",
-    type="password"
+st.set_page_config(
+    page_title="Register",
+    page_icon="📝",
+    layout="centered"
 )
 
-if st.button("Register"):
+st.title("📝 Register")
 
-    if username == "" or password == "":
-        st.warning("Please fill all fields")
+username = st.text_input(
+    "👤 Username",
+    placeholder="Enter Username"
+)
+
+password = st.text_input(
+    "🔑 Password",
+    type="password",
+    placeholder="Enter Password"
+)
+
+register_btn = st.button(
+    "🚀 Register",
+    use_container_width=True
+)
+
+if register_btn:
+
+    if username.strip() == "" or password.strip() == "":
+
+        st.warning(
+            "⚠ Please fill all fields"
+        )
+
+    elif len(password) < 4:
+
+        st.warning(
+            "⚠ Password must be at least 4 characters"
+        )
 
     else:
 
         try:
 
             response = requests.post(
-                "http://127.0.0.1:8000/register",
+                f"{BACKEND_URL}/register",
                 json={
-                    "username": username,
+                    "username": username.strip(),
                     "password": password
-                }
+                },
+                timeout=30
             )
 
             if response.status_code == 200:
 
                 try:
+
                     result = response.json()
 
-                    if "message" in result:
+                    if result.get("message") == "Registered Successfully":
 
-                        if result["message"] == "Registered Successfully":
-                            st.success(result["message"])
+                        st.success(
+                            "✅ Registration Successful"
+                        )
 
-                        else:
-                            st.warning(result["message"])
+                        time.sleep(1)
+
+                        st.switch_page(
+                            "Login.py"
+                        )
 
                     else:
-                        st.error("Invalid response from server")
+
+                        st.warning(
+                            result.get(
+                                "message",
+                                "Registration Failed"
+                            )
+                        )
 
                 except Exception:
+
                     st.error(
-                        f"Server returned non-JSON response:\n{response.text}"
+                        f"Invalid Server Response\n\n{response.text}"
                     )
 
             else:
+
                 st.error(
                     f"Server Error ({response.status_code})"
                 )
 
         except requests.exceptions.ConnectionError:
+
             st.error(
-                "Cannot connect to backend. Start FastAPI server first."
+                "❌ Cannot connect to backend server."
+            )
+
+        except requests.exceptions.Timeout:
+
+            st.error(
+                "⌛ Request Timeout."
             )
 
         except Exception as e:
-            st.error(str(e))
+
+            st.error(
+                f"Error: {e}"
+            )
+
+st.divider()
+
+st.info(
+    "Already have an account?"
+)
+
+if st.button(
+    "🔐 Go To Login",
+    use_container_width=True
+):
+    st.switch_page(
+        "Login.py"
+    )

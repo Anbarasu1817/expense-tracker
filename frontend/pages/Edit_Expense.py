@@ -2,17 +2,24 @@ import streamlit as st
 import requests
 from datetime import datetime
 
-st.title("Edit Expense")
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
+
+st.title("✏️ Edit Expense")
 
 try:
 
     response = requests.get(
-        "https://expense-tracker-1-3jd3.onrender.com/expenses"
+        f"{BACKEND_URL}/expenses",
+        timeout=30
     )
+
+    if not response.ok:
+        st.error("Failed to load expenses")
+        st.stop()
 
     expenses = response.json()
 
-    if not expenses:
+    if len(expenses) == 0:
         st.warning("No Expenses Found")
         st.stop()
 
@@ -29,31 +36,27 @@ try:
     )
 
     amount = st.number_input(
-        "Amount",
+        "Amount (₹)",
         min_value=1.0,
         value=float(expense["amount"])
     )
 
+    categories = [
+        "Food",
+        "Transport",
+        "Bills",
+        "Health",
+        "Entertainment",
+        "Shopping",
+        "Other"
+    ]
+
     category = st.selectbox(
         "Category",
-        [
-            "Food",
-            "Transport",
-            "Bills",
-            "Health",
-            "Entertainment",
-            "Shopping",
-            "Other"
-        ],
-        index=[
-            "Food",
-            "Transport",
-            "Bills",
-            "Health",
-            "Entertainment",
-            "Shopping",
-            "Other"
-        ].index(expense["category"])
+        categories,
+        index=categories.index(
+            expense.get("category", "Other")
+        )
     )
 
     expense_date = st.date_input(
@@ -64,24 +67,67 @@ try:
         ).date()
     )
 
-    if st.button("Update Expense"):
+    if st.button("✅ Update Expense"):
 
-        data = {
-            "title": title,
-            "amount": amount,
-            "category": category,
-            "date": str(expense_date)
-        }
+        if title.strip() == "":
 
-        response = requests.put(
-            f"https://expense-tracker-1-3jd3.onrender.com/expenses/{expense['id']}",
-            json=data
-        )
+            st.warning(
+                "Please enter expense title"
+            )
 
-        if response.status_code == 200:
-            st.success("Expense Updated")
         else:
-            st.error(response.text)
+
+            data = {
+                "title": title.strip(),
+                "amount": float(amount),
+                "category": category,
+                "date": str(expense_date)
+            }
+
+            update_response = requests.put(
+                f"{BACKEND_URL}/expenses/{expense['id']}",
+                json=data,
+                timeout=30
+            )
+
+            if update_response.ok:
+
+                st.success(
+                    "Expense Updated Successfully ✅"
+                )
+
+                st.balloons()
+
+            else:
+
+                st.error(
+                    f"Update Failed ({update_response.status_code})"
+                )
+
+                st.write(
+                    update_response.text
+                )
+
+except requests.exceptions.ConnectionError:
+
+    st.error(
+        "Cannot connect to backend server."
+    )
+
+except requests.exceptions.Timeout:
+
+    st.error(
+        "Request timeout."
+    )
 
 except Exception as e:
-    st.error(str(e))
+
+    st.error(
+        f"Error: {e}"
+    )
+
+st.divider()
+
+st.info(
+    "💡 Tip: Keep expense records updated for accurate reports."
+)

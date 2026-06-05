@@ -2,17 +2,27 @@ import streamlit as st
 import requests
 import pandas as pd
 
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
+
+# Login Check
 if not st.session_state.get("logged_in", False):
     st.error("Please Login First")
     st.stop()
 
-st.title("Monthly Report")
+st.title("📊 Monthly Report")
 
 try:
 
-    expenses = requests.get(
-        "http://127.0.0.1:8000/expenses"
-    ).json()
+    response = requests.get(
+        f"{BACKEND_URL}/expenses",
+        timeout=30
+    )
+
+    if not response.ok:
+        st.error("Failed to fetch expenses")
+        st.stop()
+
+    expenses = response.json()
 
     if expenses:
 
@@ -21,29 +31,86 @@ try:
         df["date"] = pd.to_datetime(df["date"])
 
         report = (
-            df.groupby(df["date"].dt.month)["amount"]
+            df.groupby(
+                df["date"].dt.strftime("%B")
+            )["amount"]
             .sum()
             .reset_index()
         )
 
-        report.columns = ["Month", "Total Expense"]
+        report.columns = [
+            "Month",
+            "Total Expense"
+        ]
 
-        st.subheader("Monthly Expense Summary")
+        st.subheader(
+            "📅 Monthly Expense Summary"
+        )
 
-        st.dataframe(report)
+        st.dataframe(
+            report,
+            use_container_width=True
+        )
+
+        st.subheader(
+            "📈 Expense Chart"
+        )
 
         st.bar_chart(
             report.set_index("Month")
         )
 
-        st.subheader("Export Report")
+        total_expense = report[
+            "Total Expense"
+        ].sum()
 
-        st.markdown(
-            "[📄 Download PDF Report](http://127.0.0.1:8000/export-pdf)"
+        st.metric(
+            "💰 Total Expenses",
+            f"₹{total_expense:,.2f}"
+        )
+
+        st.divider()
+
+        st.subheader(
+            "📥 Export Report"
+        )
+
+        csv = report.to_csv(
+            index=False
+        )
+
+        st.download_button(
+            label="⬇ Download CSV Report",
+            data=csv,
+            file_name="monthly_report.csv",
+            mime="text/csv"
+        )
+
+        st.link_button(
+            "📄 Download PDF Report",
+            f"{BACKEND_URL}/export-pdf"
         )
 
     else:
-        st.warning("No Expense Data Found")
+
+        st.warning(
+            "No Expense Data Found"
+        )
+
+except requests.exceptions.ConnectionError:
+
+    st.error(
+        "Cannot connect to backend server."
+    )
+
+except requests.exceptions.Timeout:
+
+    st.error(
+        "Request Timeout."
+    )
 
 except Exception as e:
-    st.error(e)
+
+    st.error(
+        f"Error: {e}"
+    )

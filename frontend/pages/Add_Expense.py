@@ -23,6 +23,16 @@ if col3.button("🏥 Health"):
 if col4.button("🛍 Shopping"):
     st.session_state["category"] = "Shopping"
 
+categories = [
+    "Food",
+    "Transport",
+    "Bills",
+    "Health",
+    "Entertainment",
+    "Shopping",
+    "Other"
+]
+
 # Form
 with st.form("expense_form"):
 
@@ -36,16 +46,6 @@ with st.form("expense_form"):
         min_value=1.0,
         step=1.0
     )
-
-    categories = [
-        "Food",
-        "Transport",
-        "Bills",
-        "Health",
-        "Entertainment",
-        "Shopping",
-        "Other"
-    ]
 
     category = st.selectbox(
         "Category",
@@ -66,13 +66,14 @@ with st.form("expense_form"):
 
 if submitted:
 
-    if not title.strip():
+    if title.strip() == "":
         st.warning("Please enter expense title")
+
     else:
 
         data = {
-            "title": title,
-            "amount": amount,
+            "title": title.strip(),
+            "amount": float(amount),
             "category": category,
             "date": str(expense_date)
         }
@@ -82,10 +83,10 @@ if submitted:
             response = requests.post(
                 f"{BACKEND_URL}/expenses",
                 json=data,
-                timeout=20
+                timeout=30
             )
 
-            if response.status_code == 200:
+            if response.ok:
 
                 st.success(
                     "Expense Added Successfully ✅"
@@ -96,23 +97,35 @@ if submitted:
             else:
 
                 st.error(
-                    f"Server Error: {response.text}"
+                    f"Server Error ({response.status_code})"
                 )
+
+                st.write(response.text)
+
+        except requests.exceptions.ConnectionError:
+
+            st.error(
+                "Cannot connect to backend server."
+            )
+
+        except requests.exceptions.Timeout:
+
+            st.error(
+                "Request timeout. Try again."
+            )
 
         except Exception as e:
 
             st.error(
-                f"Backend Error: {e}"
+                f"Unexpected Error: {e}"
             )
 
-# Expense Tips
 st.divider()
 
 st.info(
     "💡 Tip: Record expenses daily to track spending accurately."
 )
 
-# Reset Button
 if st.button("🔄 Reset Form"):
 
     st.session_state["category"] = "Food"

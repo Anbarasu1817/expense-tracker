@@ -2,20 +2,36 @@ import streamlit as st
 import requests
 import time
 
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
+
 st.set_page_config(
     page_title="Login",
-    page_icon="🔐"
+    page_icon="🔐",
+    layout="centered"
 )
+
+# Already Logged In
+if st.session_state.get("logged_in", False):
+    st.success(
+        f"Already logged in as {st.session_state.get('username')}"
+    )
+
+    if st.button("Go To Dashboard"):
+        st.switch_page("pages/Dashboard.py")
+
+    st.stop()
 
 st.title("🔐 Login")
 
 username = st.text_input(
-    "👤 Username"
+    "👤 Username",
+    placeholder="Enter Username"
 )
 
 password = st.text_input(
     "🔑 Password",
-    type="password"
+    type="password",
+    placeholder="Enter Password"
 )
 
 col1, col2 = st.columns(2)
@@ -23,21 +39,24 @@ col1, col2 = st.columns(2)
 with col1:
     login_btn = st.button(
         "🚀 Login",
-        width="stretch"
+        use_container_width=True
     )
 
 with col2:
     clear_btn = st.button(
         "🧹 Clear",
-        width="stretch"
+        use_container_width=True
     )
 
 if clear_btn:
+
+    st.session_state.clear()
     st.rerun()
 
 if login_btn:
 
-    if not username or not password:
+    if username.strip() == "" or password.strip() == "":
+
         st.warning(
             "⚠ Please enter username and password"
         )
@@ -47,40 +66,61 @@ if login_btn:
         try:
 
             response = requests.post(
-                "https://expense-tracker-1-3jd3.onrender.com/login",
+                f"{BACKEND_URL}/login",
                 json={
-                    "username": username,
+                    "username": username.strip(),
                     "password": password
-                }
+                },
+                timeout=30
             )
 
-            result = response.json()
+            if response.status_code == 200:
 
-            if result.get("message") == "Login Successful":
+                result = response.json()
 
-                st.session_state["logged_in"] = True
-                st.session_state["username"] = username
+                if result.get("message") == "Login Successful":
 
-                st.success(
-                    f"✅ Login Successful! Welcome {username}"
-                )
+                    st.session_state["logged_in"] = True
+                    st.session_state["username"] = username
 
-                time.sleep(1.5)
+                    st.success(
+                        f"✅ Welcome {username}"
+                    )
 
-                st.switch_page(
-                    "pages/Dashboard.py"
-                )
+                    time.sleep(1)
+
+                    st.switch_page(
+                        "pages/Dashboard.py"
+                    )
+
+                else:
+
+                    st.error(
+                        "❌ Invalid Username or Password"
+                    )
 
             else:
 
                 st.error(
-                    "❌ Invalid Username or Password"
+                    f"Server Error ({response.status_code})"
                 )
+
+        except requests.exceptions.ConnectionError:
+
+            st.error(
+                "❌ Cannot connect to backend server."
+            )
+
+        except requests.exceptions.Timeout:
+
+            st.error(
+                "⌛ Request Timeout."
+            )
 
         except Exception as e:
 
             st.error(
-                f"Backend Error: {e}"
+                f"Error: {e}"
             )
 
 st.divider()
@@ -91,23 +131,23 @@ st.info(
 
 if st.button(
     "📝 Go To Register Page",
-    width="stretch"
+    use_container_width=True
 ):
     st.switch_page(
         "pages/Register.py"
     )
 
-st.sidebar.title(
-    "💰 Expense Tracker"
-)
+# Sidebar
+st.sidebar.title("💰 Expense Tracker")
 
 st.sidebar.success(
     "Manage your money smarter"
 )
 
-st.sidebar.markdown(
-    """
+st.sidebar.markdown("""
 ### Features
+
+✅ User Login
 
 ✅ Add Expenses
 
@@ -115,8 +155,9 @@ st.sidebar.markdown(
 
 ✅ Dashboard
 
+✅ Expense History
+
 ✅ Reports
 
 ✅ PDF Export
-"""
-)
+""")
