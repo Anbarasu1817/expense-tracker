@@ -57,8 +57,10 @@ try:
         )
 
         st.bar_chart(
-            report.set_index("Month")
-        )
+            data=report,
+            x="Month",
+            y="Total Expense"
+       )
 
         total_expense = report[
             "Total Expense"
