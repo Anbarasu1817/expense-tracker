@@ -4,6 +4,8 @@ import plotly.express as px
 import pandas as pd
 import time
 
+BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
+
 # -----------------------------
 # Login Check
 # -----------------------------
@@ -12,7 +14,7 @@ if not st.session_state.get("logged_in", False):
     st.stop()
 
 # -----------------------------
-# Custom CSS Animation
+# Custom CSS
 # -----------------------------
 st.markdown("""
 <style>
@@ -42,10 +44,10 @@ st.markdown("""
 # -----------------------------
 # Sidebar
 # -----------------------------
-st.sidebar.title("Expense Tracker")
+st.sidebar.title("💰 Expense Tracker")
 
 st.sidebar.success(
-    f"Welcome {st.session_state.get('username','User')}"
+    f"Welcome {st.session_state.get('username', 'User')}"
 )
 
 if st.sidebar.button("Logout"):
@@ -66,28 +68,36 @@ with st.spinner("Loading Dashboard..."):
 
 try:
 
-    expenses = requests.get(
-        "https://expense-tracker-1-3jd3.onrender.com/expenses"
-    ).json()
+    expenses_response = requests.get(
+        f"{BACKEND_URL}/expenses",
+        timeout=30
+    )
 
-    income = requests.get(
-        "https://expense-tracker-1-3jd3.onrender.com/income"
-    ).json()
+    income_response = requests.get(
+        f"{BACKEND_URL}/income",
+        timeout=30
+    )
 
+    expenses = expenses_response.json()
+    income = income_response.json()
+
+    # -----------------------------
+    # Total Calculations
+    # -----------------------------
     total_income = sum(
-        item["amount"]
+        float(item.get("amount", 0))
         for item in income
     )
 
     total_expense = sum(
-        item["amount"]
+        float(item.get("amount", 0))
         for item in expenses
     )
 
     savings = total_income - total_expense
 
     # -----------------------------
-    # Animated Cards
+    # Summary Cards
     # -----------------------------
     col1, col2, col3 = st.columns(3)
 
@@ -96,7 +106,7 @@ try:
         <div class="metric-card">
             <h3>💰 Income</h3>
             <div class="big-font">
-                ₹{total_income:,.0f}
+                ₹{total_income:,.2f}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -106,7 +116,7 @@ try:
         <div class="metric-card">
             <h3>💸 Expense</h3>
             <div class="big-font">
-                ₹{total_expense:,.0f}
+                ₹{total_expense:,.2f}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -116,7 +126,7 @@ try:
         <div class="metric-card">
             <h3>🏦 Savings</h3>
             <div class="big-font">
-                ₹{savings:,.0f}
+                ₹{savings:,.2f}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -130,10 +140,10 @@ try:
             savings / total_income
         ) * 100
 
-        st.subheader("Savings Rate")
+        st.subheader("📈 Savings Rate")
 
         st.progress(
-            min(int(savings_rate), 100)
+            min(int(max(savings_rate, 0)), 100)
         )
 
         st.success(
@@ -141,7 +151,7 @@ try:
         )
 
     # -----------------------------
-    # Charts
+    # Expense Charts
     # -----------------------------
     if expenses:
 
@@ -149,36 +159,47 @@ try:
 
         for item in expenses:
 
-            cat = item["category"]
+            category = item.get(
+                "category",
+                "Other"
+            )
 
-            if cat not in categories:
-                categories[cat] = 0
+            amount = float(
+                item.get("amount", 0)
+            )
 
-            categories[cat] += item["amount"]
+            categories[category] = (
+                categories.get(category, 0)
+                + amount
+            )
 
-        st.subheader("Expense Distribution")
+        st.subheader("📊 Expense Distribution")
 
         pie_fig = px.pie(
             names=list(categories.keys()),
             values=list(categories.values()),
             hole=0.4,
-            title="Expense Breakdown"
+            title="Expenses by Category"
         )
 
         st.plotly_chart(
             pie_fig,
-            width="stretch"
+            use_container_width=True
         )
 
         bar_fig = px.bar(
             x=list(categories.keys()),
             y=list(categories.values()),
-            title="Category Wise Spending"
+            title="Category Wise Spending",
+            labels={
+                "x": "Category",
+                "y": "Amount"
+            }
         )
 
         st.plotly_chart(
             bar_fig,
-            width="stretch"
+            use_container_width=True
         )
 
         top_category = max(
@@ -188,13 +209,14 @@ try:
 
         st.info(
             f"🔥 Highest Spending Category: "
-            f"{top_category}"
+            f"{top_category} "
+            f"(₹{categories[top_category]:,.2f})"
         )
 
     # -----------------------------
     # Recent Expenses
     # -----------------------------
-    st.subheader("Recent Expenses")
+    st.subheader("📜 Recent Expenses")
 
     if expenses:
 
@@ -202,11 +224,29 @@ try:
 
         st.dataframe(
             df,
-            width="stretch"
+            use_container_width=True
         )
 
     else:
-        st.warning("No Expenses Found")
+
+        st.warning(
+            "No Expenses Found"
+        )
+
+except requests.exceptions.ConnectionError:
+
+    st.error(
+        "Unable to connect to backend server."
+    )
+
+except requests.exceptions.Timeout:
+
+    st.error(
+        "Request timed out."
+    )
 
 except Exception as e:
-    st.error(f"Error: {e}")
+
+    st.error(
+        f"Error: {e}"
+    )
