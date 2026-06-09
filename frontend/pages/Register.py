@@ -57,57 +57,43 @@ if register_btn:
 
             if response.status_code == 200:
 
-                try:
+                success_card = st.empty()
 
-                    result = response.json()
+                success_card.markdown(
+                    """
+                    <div style="
+                        padding:15px;
+                        border-radius:10px;
+                        background-color:#d4edda;
+                        border:1px solid #28a745;
+                        color:#155724;
+                        text-align:center;
+                        font-weight:bold;
+                        font-size:18px;">
+                        ✅ Registration Successful
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
-                    if result.get("message") == "Registered Successfully":
+                time.sleep(3)
 
-                        card = st.empty()
-
-                        card.markdown(
-                            """
-                            <div style="
-                                padding:15px;
-                                border-radius:10px;
-                                background-color:#d4edda;
-                                border:1px solid #28a745;
-                                color:#155724;
-                                text-align:center;
-                                font-weight:bold;
-                                font-size:18px;">
-                                ✅ Registration Successful
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-
-                        time.sleep(3)
-
-                        st.switch_page(
-                            "Login.py"
-                        )
-
-                    else:
-
-                        st.warning(
-                            result.get(
-                                "message",
-                                "Registration Failed"
-                            )
-                        )
-
-                except Exception:
-
-                    st.error(
-                        f"Invalid Server Response\n\n{response.text}"
-                    )
+                st.switch_page("Login.py")
 
             else:
 
-                st.error(
-                    f"Server Error ({response.status_code})"
-                )
+                try:
+                    result = response.json()
+                    st.error(
+                        result.get(
+                            "message",
+                            f"Server Error ({response.status_code})"
+                        )
+                    )
+                except Exception:
+                    st.error(
+                        f"Server Error ({response.status_code})"
+                    )
 
         except requests.exceptions.ConnectionError:
 
