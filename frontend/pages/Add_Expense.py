@@ -1,12 +1,12 @@
 import streamlit as st
 import requests
+import time
 from datetime import date
 
 BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
 
 st.title("💸 Add Expense")
 
-# Quick Category Buttons
 st.subheader("Quick Select")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -33,7 +33,6 @@ categories = [
     "Other"
 ]
 
-# Form
 with st.form("expense_form"):
 
     title = st.text_input(
@@ -88,11 +87,28 @@ if submitted:
 
             if response.ok:
 
-                st.success(
-                    "Expense Added Successfully ✅"
+                card = st.empty()
+
+                card.markdown(
+                    """
+                    <div style="
+                        padding:15px;
+                        border-radius:10px;
+                        background-color:#d4edda;
+                        border:1px solid #28a745;
+                        color:#155724;
+                        text-align:center;
+                        font-weight:bold;
+                        font-size:18px;">
+                        ✅ Expense Added Successfully
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
 
-                st.balloons()
+                time.sleep(3)
+
+                card.empty()
 
             else:
 
