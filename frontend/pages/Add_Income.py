@@ -47,9 +47,9 @@ if st.button("➕ Add Income"):
 
             if response.ok:
 
-                card = st.empty()
+                success_card = st.empty()
 
-                card.markdown(
+                success_card.markdown(
                     """
                     <div style="
                         padding:15px;
@@ -68,7 +68,7 @@ if st.button("➕ Add Income"):
 
                 time.sleep(3)
 
-                card.empty()
+                success_card.empty()
 
             else:
 

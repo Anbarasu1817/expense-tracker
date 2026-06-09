@@ -87,9 +87,9 @@ if submitted:
 
             if response.ok:
 
-                card = st.empty()
+                success_card = st.empty()
 
-                card.markdown(
+                success_card.markdown(
                     """
                     <div style="
                         padding:15px;
@@ -108,7 +108,7 @@ if submitted:
 
                 time.sleep(3)
 
-                card.empty()
+                success_card.empty()
 
             else:
 
