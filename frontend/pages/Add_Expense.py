@@ -74,7 +74,8 @@ if submitted:
             "title": title.strip(),
             "amount": float(amount),
             "category": category,
-            "date": str(expense_date)
+            "date": str(expense_date),
+            "user_id": st.session_state["user_id"]
         }
 
         try:

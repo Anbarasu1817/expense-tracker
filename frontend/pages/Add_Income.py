@@ -34,7 +34,8 @@ if st.button("➕ Add Income"):
         data = {
             "source": source.strip(),
             "amount": float(amount),
-            "date": str(income_date)
+            "date": str(income_date),
+            "user_id": st.session_state["user_id"]
         }
 
         try:

@@ -59,6 +59,10 @@ def login(user: dict):
         row = result.fetchone()
 
         if row:
-            return {"message": "Login Successful"}
+            return {
+                "message": "Login Successful",
+                "user_id": row.id,
+                "username": row.username
+            }
 
         return {"message": "Invalid Credentials"}

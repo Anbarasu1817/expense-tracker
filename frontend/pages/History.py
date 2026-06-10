@@ -13,7 +13,7 @@ if st.button("🔄 Refresh"):
 try:
 
     response = requests.get(
-        f"{BACKEND_URL}/expenses",
+        f"{BACKEND_URL}/expenses/{st.session_state['user_id']}",
         timeout=30
     )
 

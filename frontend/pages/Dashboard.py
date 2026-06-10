@@ -69,12 +69,12 @@ with st.spinner("Loading Dashboard..."):
 try:
 
     expenses_response = requests.get(
-        f"{BACKEND_URL}/expenses",
+        f"{BACKEND_URL}/expenses/{st.session_state['user_id']}",
         timeout=30
     )
 
     income_response = requests.get(
-        f"{BACKEND_URL}/income",
+        f"{BACKEND_URL}/income/{st.session_state['user_id']}",
         timeout=30
     )
 

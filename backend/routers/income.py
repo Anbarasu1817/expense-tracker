@@ -13,14 +13,15 @@ def add_income(data: dict):
         conn.execute(
             text("""
                 INSERT INTO income
-                (amount, source, date)
+                (amount, source, date, user_id)
                 VALUES
-                (:amount, :source, :date)
+                (:amount,:source,:date,:user_id)
             """),
             {
                 "amount": data["amount"],
                 "source": data["source"],
-                "date": data["date"]
+                "date": data["date"],
+                "user_id": data["user_id"]
             }
         )
 
@@ -29,8 +30,8 @@ def add_income(data: dict):
     return {"message": "Income Added"}
 
 
-@router.get("/income")
-def get_income():
+@router.get("/income/{user_id}")
+def get_income(user_id: int):
 
     with engine.connect() as conn:
 
@@ -38,14 +39,15 @@ def get_income():
             text("""
                 SELECT *
                 FROM income
+                WHERE user_id=:user_id
                 ORDER BY id DESC
-            """)
+            """),
+            {"user_id": user_id}
         )
 
         data = []
 
         for row in result:
-
             data.append({
                 "id": row.id,
                 "amount": row.amount,
@@ -54,48 +56,3 @@ def get_income():
             })
 
         return data
-
-
-@router.put("/income/{income_id}")
-def update_income(income_id: int, data: dict):
-
-    with engine.connect() as conn:
-
-        conn.execute(
-            text("""
-                UPDATE income
-                SET
-                    amount=:amount,
-                    source=:source,
-                    date=:date
-                WHERE id=:id
-            """),
-            {
-                "id": income_id,
-                "amount": data["amount"],
-                "source": data["source"],
-                "date": data["date"]
-            }
-        )
-
-        conn.commit()
-
-    return {"message": "Income Updated"}
-
-
-@router.delete("/income/{income_id}")
-def delete_income(income_id: int):
-
-    with engine.connect() as conn:
-
-        conn.execute(
-            text("""
-                DELETE FROM income
-                WHERE id=:id
-            """),
-            {"id": income_id}
-        )
-
-        conn.commit()
-
-    return {"message": "Income Deleted"}

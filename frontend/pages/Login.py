@@ -81,7 +81,8 @@ if login_btn:
                 if result.get("message") == "Login Successful":
 
                     st.session_state["logged_in"] = True
-                    st.session_state["username"] = username
+                    st.session_state["username"] = result["username"]
+                    st.session_state["user_id"] = result["user_id"]
 
                     st.success(
                         f"✅ Welcome {username}"

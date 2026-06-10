@@ -26,7 +26,8 @@ def create_tables():
                 title VARCHAR(100),
                 amount FLOAT,
                 category VARCHAR(100),
-                date DATE
+                date DATE,
+                user_id INTEGER
             )
         """))
 
@@ -35,7 +36,8 @@ def create_tables():
                 id SERIAL PRIMARY KEY,
                 source VARCHAR(100),
                 amount FLOAT,
-                date DATE
+                date DATE,
+                user_id INTEGER
             )
         """))
 
