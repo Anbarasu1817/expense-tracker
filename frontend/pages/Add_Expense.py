@@ -5,6 +5,14 @@ from datetime import date
 
 BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
 
+# -----------------------------
+# Login Check
+# -----------------------------
+if "user_id" not in st.session_state:
+    st.error("Please Login First")
+    st.switch_page("Login.py")
+    st.stop()
+
 st.title("💸 Add Expense")
 
 st.subheader("Quick Select")
@@ -107,7 +115,7 @@ if submitted:
                     unsafe_allow_html=True
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 success_card.empty()
 

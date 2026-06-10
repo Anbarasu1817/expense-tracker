@@ -4,6 +4,7 @@ from database import engine
 
 router = APIRouter()
 
+
 @router.post("/register")
 def register(user: dict):
 
@@ -11,7 +12,8 @@ def register(user: dict):
 
         check = conn.execute(
             text("""
-                SELECT * FROM users
+                SELECT *
+                FROM users
                 WHERE username=:username
             """),
             {"username": user["username"]}

@@ -4,6 +4,14 @@ import pandas as pd
 
 BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
 
+# -----------------------------
+# Login Check
+# -----------------------------
+if "user_id" not in st.session_state:
+    st.error("Please Login First")
+    st.switch_page("Login.py")
+    st.stop()
+
 st.title("📜 Expense History")
 
 # Refresh Button
@@ -26,7 +34,7 @@ try:
     if expenses:
 
         total_expense = sum(
-            e["amount"]
+            float(e["amount"])
             for e in expenses
         )
 
@@ -115,7 +123,7 @@ try:
                 ):
 
                     delete_response = requests.delete(
-                        f"{BACKEND_URL}/expenses/{expense['id']}",
+                        f"{BACKEND_URL}/expenses/{expense['id']}/{st.session_state['user_id']}",
                         timeout=30
                     )
 
@@ -140,7 +148,7 @@ try:
         st.download_button(
             label="📥 Download CSV",
             data=df.to_csv(index=False),
-            file_name="expenses.csv",
+            file_name="my_expenses.csv",
             mime="text/csv"
         )
 
