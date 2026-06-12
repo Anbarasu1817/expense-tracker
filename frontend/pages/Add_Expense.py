@@ -121,9 +121,9 @@ if submitted:
 
             else:
 
-                st.error(
-                    f"Server Error ({response.status_code})"
-                )
+                st.error(f"Server Error ({response.status_code})")
+                st.code(response.text)
+                
 
                 st.write(response.text)
 

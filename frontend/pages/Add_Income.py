@@ -74,8 +74,8 @@ if st.button("➕ Add Income"):
             else:
 
                 st.error(
-                    f"Server Error ({response.status_code})"
-                )
+                    f"Server Error ({response.status_code})")
+                st.code(response.text)
 
                 st.write(response.text)
 
