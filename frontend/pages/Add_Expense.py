@@ -8,13 +8,15 @@ BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
 # -----------------------------
 # Login Check
 # -----------------------------
-if "user_id" not in st.session_state:
+if not st.session_state.get("logged_in", False):
     st.error("Please Login First")
-    st.switch_page("Login.py")
     st.stop()
 
 st.title("💸 Add Expense")
 
+# -----------------------------
+# Quick Category Buttons
+# -----------------------------
 st.subheader("Quick Select")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -41,6 +43,9 @@ categories = [
     "Other"
 ]
 
+# -----------------------------
+# Expense Form
+# -----------------------------
 with st.form("expense_form"):
 
     title = st.text_input(
@@ -71,6 +76,9 @@ with st.form("expense_form"):
         "➕ Add Expense"
     )
 
+# -----------------------------
+# Submit Expense
+# -----------------------------
 if submitted:
 
     if title.strip() == "":
@@ -83,7 +91,7 @@ if submitted:
             "amount": float(amount),
             "category": category,
             "date": str(expense_date),
-            "user_id": st.session_state["user_id"]
+            "user_id": st.session_state.get("user_id")
         }
 
         try:
@@ -94,38 +102,24 @@ if submitted:
                 timeout=30
             )
 
-            if response.ok:
+            if response.status_code == 200:
 
-                success_card = st.empty()
+                st.success("✅ Expense Added Successfully")
 
-                success_card.markdown(
-                    """
-                    <div style="
-                        padding:15px;
-                        border-radius:10px;
-                        background-color:#d4edda;
-                        border:1px solid #28a745;
-                        color:#155724;
-                        text-align:center;
-                        font-weight:bold;
-                        font-size:18px;">
-                        ✅ Expense Added Successfully
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                time.sleep(1)
 
-                time.sleep(2)
-
-                success_card.empty()
+                st.rerun()
 
             else:
 
-                st.error(f"Server Error ({response.status_code})")
-                st.code(response.text)
-                
+                st.error(
+                    f"Server Error ({response.status_code})"
+                )
 
-                st.write(response.text)
+                try:
+                    st.json(response.json())
+                except:
+                    st.code(response.text)
 
         except requests.exceptions.ConnectionError:
 
@@ -145,6 +139,9 @@ if submitted:
                 f"Unexpected Error: {e}"
             )
 
+# -----------------------------
+# Footer
+# -----------------------------
 st.divider()
 
 st.info(
