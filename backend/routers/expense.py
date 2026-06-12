@@ -5,6 +5,7 @@ from database import engine
 router = APIRouter()
 
 
+# Get User Expenses
 @router.get("/expenses/{user_id}")
 def get_expenses(user_id: int):
 
@@ -23,6 +24,7 @@ def get_expenses(user_id: int):
         return result
 
 
+# Add Expense
 @router.post("/expenses")
 def add_expense(expense: dict):
 
@@ -47,3 +49,52 @@ def add_expense(expense: dict):
         conn.commit()
 
     return {"message": "Expense Added"}
+
+
+# Delete Expense
+@router.delete("/expenses/{expense_id}")
+def delete_expense(expense_id: int):
+
+    with engine.connect() as conn:
+
+        conn.execute(
+            text("""
+                DELETE FROM expenses
+                WHERE id=:id
+            """),
+            {"id": expense_id}
+        )
+
+        conn.commit()
+
+    return {"message": "Expense Deleted"}
+
+
+# Update Expense
+@router.put("/expenses/{expense_id}")
+def update_expense(expense_id: int, expense: dict):
+
+    with engine.connect() as conn:
+
+        conn.execute(
+            text("""
+                UPDATE expenses
+                SET
+                    title=:title,
+                    amount=:amount,
+                    category=:category,
+                    date=:date
+                WHERE id=:id
+            """),
+            {
+                "id": expense_id,
+                "title": expense["title"],
+                "amount": expense["amount"],
+                "category": expense["category"],
+                "date": expense["date"]
+            }
+        )
+
+        conn.commit()
+
+    return {"message": "Expense Updated"}

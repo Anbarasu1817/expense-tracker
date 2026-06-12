@@ -9,17 +9,22 @@ if not st.session_state.get("logged_in", False):
     st.error("Please Login First")
     st.stop()
 
+if "user_id" not in st.session_state:
+    st.error("User session expired. Please login again.")
+    st.stop()
+
 st.title("📊 Monthly Report")
 
 try:
 
     response = requests.get(
-        f"{BACKEND_URL}/expenses",
+        f"{BACKEND_URL}/expenses/{st.session_state['user_id']}",
         timeout=30
     )
 
     if not response.ok:
-        st.error("Failed to fetch expenses")
+        st.error(f"Failed to fetch expenses ({response.status_code})")
+        st.write(response.text)
         st.stop()
 
     expenses = response.json()
@@ -43,28 +48,22 @@ try:
             "Total Expense"
         ]
 
-        st.subheader(
-            "📅 Monthly Expense Summary"
-        )
+        st.subheader("📅 Monthly Expense Summary")
 
         st.dataframe(
             report,
             use_container_width=True
         )
 
-        st.subheader(
-            "📈 Expense Chart"
-        )
+        st.subheader("📈 Expense Chart")
 
         st.bar_chart(
             data=report,
             x="Month",
             y="Total Expense"
-       )
+        )
 
-        total_expense = report[
-            "Total Expense"
-        ].sum()
+        total_expense = report["Total Expense"].sum()
 
         st.metric(
             "💰 Total Expenses",
@@ -73,13 +72,9 @@ try:
 
         st.divider()
 
-        st.subheader(
-            "📥 Export Report"
-        )
+        st.subheader("📥 Export Report")
 
-        csv = report.to_csv(
-            index=False
-        )
+        csv = report.to_csv(index=False)
 
         st.download_button(
             label="⬇ Download CSV Report",
@@ -88,31 +83,24 @@ try:
             mime="text/csv"
         )
 
+        # PDF Export (optional)
         st.link_button(
             "📄 Download PDF Report",
-            f"{BACKEND_URL}/export-pdf"
+            f"{BACKEND_URL}/export-pdf/{st.session_state['user_id']}"
         )
 
     else:
 
-        st.warning(
-            "No Expense Data Found"
-        )
+        st.warning("No Expense Data Found")
 
 except requests.exceptions.ConnectionError:
 
-    st.error(
-        "Cannot connect to backend server."
-    )
+    st.error("Cannot connect to backend server.")
 
 except requests.exceptions.Timeout:
 
-    st.error(
-        "Request Timeout."
-    )
+    st.error("Request Timeout.")
 
 except Exception as e:
 
-    st.error(
-        f"Error: {e}"
-    )
+    st.error(f"Error: {e}")
