@@ -78,7 +78,7 @@ if register_btn:
 
                 time.sleep(3)
 
-                st.switch_page("Login.py")
+                st.switch_page("pages/Login.py")
 
             else:
 

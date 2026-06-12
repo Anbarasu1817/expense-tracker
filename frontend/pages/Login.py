@@ -81,18 +81,16 @@ if login_btn:
                 if result.get("message") == "Login Successful":
 
                     st.session_state["logged_in"] = True
-                    st.session_state["username"] = result["username"]
-                    st.session_state["user_id"] = result["user_id"]
+                    st.session_state["username"] = result.get("username", username)
+                    st.session_state["user_id"] = result.get("user_id")
 
                     st.success(
-                        f"✅ Welcome {username}"
+                        f"✅ Welcome {st.session_state['username']}"
                     )
 
                     time.sleep(1)
 
-                    st.switch_page(
-                        "pages/Dashboard.py"
-                    )
+                    st.switch_page("pages/Dashboard.py")
 
                 else:
 
