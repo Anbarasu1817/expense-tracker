@@ -4,17 +4,26 @@ from datetime import datetime
 
 BACKEND_URL = "https://expense-tracker-1-3jd3.onrender.com"
 
+# -----------------------------
+# Login Check
+# -----------------------------
+if "user_id" not in st.session_state:
+    st.error("Please Login First")
+    st.stop()
+
 st.title("✏️ Edit Expense")
 
 try:
 
     response = requests.get(
-        f"{BACKEND_URL}/expenses",
+        f"{BACKEND_URL}/expenses/{st.session_state['user_id']}",
         timeout=30
     )
 
     if not response.ok:
         st.error("Failed to load expenses")
+        st.write("Status Code:", response.status_code)
+        st.write("Response:", response.text)
         st.stop()
 
     expenses = response.json()
@@ -51,12 +60,15 @@ try:
         "Other"
     ]
 
+    current_category = expense.get("category", "Other")
+
+    if current_category not in categories:
+        current_category = "Other"
+
     category = st.selectbox(
         "Category",
         categories,
-        index=categories.index(
-            expense.get("category", "Other")
-        )
+        index=categories.index(current_category)
     )
 
     expense_date = st.date_input(
@@ -70,10 +82,7 @@ try:
     if st.button("✅ Update Expense"):
 
         if title.strip() == "":
-
-            st.warning(
-                "Please enter expense title"
-            )
+            st.warning("Please enter expense title")
 
         else:
 
@@ -81,7 +90,8 @@ try:
                 "title": title.strip(),
                 "amount": float(amount),
                 "category": category,
-                "date": str(expense_date)
+                "date": str(expense_date),
+                "user_id": st.session_state["user_id"]
             }
 
             update_response = requests.put(
@@ -104,9 +114,7 @@ try:
                     f"Update Failed ({update_response.status_code})"
                 )
 
-                st.write(
-                    update_response.text
-                )
+                st.write(update_response.text)
 
 except requests.exceptions.ConnectionError:
 
