@@ -6,7 +6,10 @@ DATABASE_URL = os.getenv(
     "postgresql://postgres:anbu18@localhost:5432/expense_db"
 )
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"sslmode": "require"}
+)
 
 
 def create_tables():
